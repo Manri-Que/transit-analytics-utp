@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Transit Analytics - Evaluador de Riesgo</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        body {
+            display: flex;
+            height: 100vh;
+            background-color: #f4f6f9;
+        }
+        .sidebar {
+            width: 260px;
+            background-color: #1e293b;
+            color: #ffffff;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        .sidebar h2 {
+            font-size: 1.2rem;
+            color: #38bdf8;
+            border-bottom: 1px solid #334155;
+            padding-bottom: 10px;
+        }
+        .sidebar ul {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .sidebar li a {
+            color: #cbd5e1;
+            text-decoration: none;
+            padding: 10px;
+            border-radius: 6px;
+            display: block;
+        }
+        .sidebar li a.active, .sidebar li a:hover {
+            background-color: #0f172a;
+            color: #ffffff;
+        }
+        .main-content {
+            flex: 1;
+            padding: 30px;
+            overflow-y: auto;
+        }
+        .header {
+            margin-bottom: 25px;
+        }
+        .header h1 {
+            font-size: 1.8rem;
+            color: #0f172a;
+        }
+        .card {
+            background: #ffffff;
+            border-radius: 8px;
+            padding: 25px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            margin-bottom: 25px;
+        }
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+        .form-group label {
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: #475569;
+        }
+        .form-group input, .form-group select {
+            padding: 10px;
+            border: 1px solid #cbd5e1;
+            border-radius: 6px;
+            font-size: 0.95rem;
+        }
+        .btn-submit {
+            background-color: #2563eb;
+            color: #ffffff;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 6px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            width: 100%;
+        }
+        .btn-submit:hover {
+            background-color: #1d4ed8;
+        }
+        .result-card {
+            display: none;
+            border-radius: 8px;
+            padding: 20px;
+            color: #ffffff;
+            margin-top: 20px;
+        }
+        .result-card.rojo {
+            background-color: #dc2626;
+        }
+        .result-card.amarillo {
+            background-color: #d97706;
+        }
+        .result-card.verde {
+            background-color: #16a34a;
+        }
+        .result-card h3 {
+            font-size: 1.4rem;
+            margin-bottom: 10px;
+        }
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            margin-top: 15px;
+            background: rgba(255, 255, 255, 0.15);
+            padding: 15px;
+            border-radius: 6px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="sidebar">
+        <h2>TRANSIT ANALYTICS</h2>
+        <ul>
+            <li><a href="#">Dashboard</a></li>
+            <li><a href="#">Cargar Datasets</a></li>
+            <li><a href="#" class="active">Evaluar Tramo</a></li>
+            <li><a href="#">Reportes SUTRAN</a></li>
+        </ul>
+    </div>
+
+    <div class="main-content">
+        <div class="header">
+            <h1>Evaluación Analítica de Riesgo Vial</h1>
+        </div>
+
+        <div class="card">
+            <form id="evaluatorForm">
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="carretera">Carretera / Vía:</label>
+                        <select id="carretera" required>
+                            <option value="PE-1N">PE-1N (Panamericana Norte)</option>
+                            <option value="PE-1S">PE-1S (Panamericana Sur)</option>
+                            <option value="PE-22">PE-22 (Carretera Central)</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="longitudKm">Longitud del Tramo (Km):</label>
+                        <input type="number" id="longitudKm" step="0.1" value="5.0" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="siniestros">Cantidad de Siniestros:</label>
+                        <input type="number" id="siniestros" value="10" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="fallecidos">Cantidad de Fallecidos:</label>
+                        <input type="number" id="fallecidos" value="3" required>
+                    </div>
+                </div>
+                <button type="submit" class="btn-submit">EVALUAR RIESGO VIAL</button>
+            </form>
+
+            <div id="resultCard" class="result-card">
+                <h3 id="evaluacionRiesgoText">-</h3>
+                <div class="metrics-grid">
+                    <div>
+                        <small>Índice Siniestralidad (ISK):</small>
+                        <p><strong id="iskText">0.00</strong> Siniestros/km</p>
+                    </div>
+                    <div>
+                        <small>Tasa de Letalidad (TLC):</small>
+                        <p><strong id="tlcText">0.00%</strong></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('evaluatorForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+
+            const siniestros = document.getElementById('siniestros').value;
+            const fallecidos = document.getElementById('fallecidos').value;
+            const longitudKm = document.getElementById('longitudKm').value;
+
+            const url = `http://localhost:8081/api/analitica/evaluar-tramo?siniestros=${siniestros}&fallecidos=${fallecidos}&longitudKm=${longitudKm}`;
+
+            try {
+                const response = await fetch(url);
+                const data = await response.json();
+
+                const resultCard = document.getElementById('resultCard');
+                const evaluacionRiesgoText = document.getElementById('evaluacionRiesgoText');
+                const iskText = document.getElementById('iskText');
+                const tlcText = document.getElementById('tlcText');
+
+                evaluacionRiesgoText.textContent = data.evaluacionRiesgo;
+                iskText.textContent = data.indiceSiniestralidadISK;
+                tlcText.textContent = data.tasaLetalidadTLC;
+
+                resultCard.className = 'result-card';
+                if (data.evaluacionRiesgo.includes('ROJO')) {
+                    resultCard.classList.add('rojo');
+                } else if (data.evaluacionRiesgo.includes('AMARILLO')) {
+                    resultCard.classList.add('amarillo');
+                } else {
+                    resultCard.classList.add('verde');
+                }
+
+                resultCard.style.display = 'block';
+            } catch (error) {
+                alert('Error al conectar con el backend en Java (Spring Boot)');
+            }
+        });
+    </script>
+</body>
+</html>
